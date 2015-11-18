@@ -1,5 +1,5 @@
 import serial
-import sys,threading,time
+import sys,threading,time,signal
 from time import ctime,sleep
 import struct
 import glob
@@ -9,6 +9,7 @@ bufferIndex = 0
 timeIndex = 0
 isParseStart = False
 isParseStartIndex = 0
+is_loop = True
 
 def serialPorts():
 	if sys.platform.startswith('win'):
@@ -83,7 +84,8 @@ def responseValue(extId,value):
 	print value
 
 def readLoop():
-	while True:
+	global is_loop
+	while is_loop:
 		try:	
 			if ser.isOpen():
 				n = ser.inWaiting()
@@ -107,14 +109,24 @@ def requestData():
 				ser.write([0xff,0x55,0x4,0x2,0x1,31,0x1])
 		except Exception,ex:
 			print str(ex)
+def exitHandler(signum, frame):
+	global is_loop
+	is_loop = False
+	print "receive a signal %d, is_exit = %d"%(signum, is_loop)
 
 class ReadSerialThread(threading.Thread):
     def run(self):
 		readLoop()
 
 print(serialPorts())
-ser = serial.Serial("/dev/tty.wchusbserial14130",115200)
+signal.signal(signal.SIGINT, exitHandler)
+signal.signal(signal.SIGTERM, exitHandler)
+ser = serial.Serial("/dev/tty.Bluetooth-Incoming-Port",115200)
 thread = ReadSerialThread()
+thread.setDaemon(True)
 thread.start()
-
+while True:
+	alive = thread.isAlive()
+	if not alive:
+		break
 
