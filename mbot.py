@@ -106,9 +106,14 @@ def requestData():
 		timeIndex = 0
 		try:	
 			if ser.isOpen():	
-				ser.write([0xff,0x55,0x4,0x2,0x1,31,0x1])
+				#[0xff,0x55,0x4,0x2,0x1,31,0x1]
+				ser.write(packageRGBLed(7,0,0x10,0x0,0x0))
 		except Exception,ex:
 			print str(ex)
+			
+def packageRGBLed(port,index,red,green,blue)
+	return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,index,red,green,blue])
+	
 def exitHandler(signum, frame):
 	global is_loop
 	is_loop = False
@@ -121,7 +126,7 @@ class ReadSerialThread(threading.Thread):
 print(serialPorts())
 signal.signal(signal.SIGINT, exitHandler)
 signal.signal(signal.SIGTERM, exitHandler)
-ser = serial.Serial("/dev/tty.Bluetooth-Incoming-Port",115200)
+ser = serial.Serial("/dev/tty.wchusbserialfa130",115200)
 thread = ReadSerialThread()
 thread.setDaemon(True)
 thread.start()
