@@ -5,6 +5,7 @@ import struct
 import glob
 
 buffer = []
+packageList = []
 bufferIndex = 0
 timeIndex = 0
 isParseStart = False
@@ -97,60 +98,87 @@ def readLoop():
 				sleep(0.5)
 		except Exception,ex:
 			print str(ex)
-			
+led = 1
 def requestData():
-	global timeIndex
+	global timeIndex,led,bot
 	timeIndex += 1
-	if timeIndex > 100:
+	if timeIndex > 50:
 		timeIndex = 0
 		try:	
 			if ser.isOpen():	
-				#[0xff,0x55,0x4,0x2,0x1,31,0x1]
-				ser.write(packageRGBLedOnBoard(0,0x0,0x10,0x0))
+				led = 3 - led
+				addPackage(bot.packageRGBLedOnBoard(0x0,0x0,0x0,0x0))
+				addPackage(bot.packageRGBLedOnBoard(led,0x0,0x10,0x0))
+				# addPackage(bot.packageBuzzer(led*200))
+				addPackage(bot.requestLightOnBoard(8))
 		except Exception,ex:
 			print str(ex)
-			
+
+def addPackage(package):
+	packageList.append(package)
+	sendFirstPackage()
+
+def sendFirstPackage():
+	if len(packageList) > 0:
+		ser.write(packageList[0])
+		packageList.pop(0)
+		sleep(0.01)
+
 class mBot():
-	def packageRGBLedOnBoard(index,red,green,blue):
-		return packageRGBLed(0x7,index,red,green,blue)
-	
-	def packageRGBLed(port,index,red,green,blue):
+	def packageRGBLed(self,port,index,red,green,blue):
 		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,index,red,green,blue])
 
-	def packageMotor(port,speed):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
+	def packageRGBLedOnBoard(self,index,red,green,blue):
+		return self.packageRGBLed(0x7,index,red,green,blue)
 
-	def packageMove(leftSpeed,rightSpeed):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
+	def packageMotor(self,port,speed):
+		return bytearray([0xff,0x55,0x6,0x0,0x2,0xa,port]+short2bytes(speed))
+
+	def packageMove(self,leftSpeed,rightSpeed):
+		return bytearray([0xff,0x55,0x7,0x0,0x2,0x5]+short2bytes(leftSpeed)+short2bytes(rightSpeed))
 		
-	def packageServo(port,slot,angle):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
+	def packageServo(self,port,slot,angle):
+		return bytearray([0xff,0x55,0x6,0x0,0x2,0xb,port,slot,angle])
 	
-	def packageBuzzer(buzzer):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
+	def packageBuzzer(self,buzzer):
+		return bytearray([0xff,0x55,0x5,0x0,0x2,0x22]+short2bytes(buzzer))
+
+	def packageSevSegDisplay(self,port,display):
+		return bytearray([0xff,0x55,0x8,0x0,0x2,0x9,port]+float2bytes(display))
 		
-	def packageIROnBoard(message):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
+	def packageIROnBoard(self,message):
+		return bytearray([0xff,0x55,len(message)+3,0x0,0x2,0xd,message])
 		
-	def requestLightOnBoard():
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
+	def requestLightOnBoard(self,extID):
+		return self.requestLight(extID,8)
+	
+	def requestLight(self,extID,port):
+		return bytearray([0xff,0x55,0x4,extID,0x1,0x3,port])
+
+	def requestButtonOnBoard(self,extID):
+		return bytearray([0xff,0x55,0x4,extID,0x1,0x1f,0x7])
 		
-	def requestButtonOnBoard():
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
+	def requestIROnBoard(self,extID):
+		return bytearray([0xff,0x55,0x3,extID,0x1,0xd])
 		
-	def requestIROnBoard():
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
+	def requestUltrasonicSensor(self,extID,port):
+		return bytearray([0xff,0x55,0x4,extID,0x1,0x1,port])
 		
-	def requestUltrasonicSensor(port):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed])
-		
-	def requestLineFoller(port):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,speed]))
+	def requestLineFollower(self,extID,port):
+		return bytearray([0xff,0x55,0x4,extID,0x1,0x11,port])
 	
 def exitHandler(signum, frame):
 	global is_loop
 	is_loop = False
 	print "receive a signal %d, is_exit = %d"%(signum, is_loop)
+
+def float2bytes(fval):
+	val = struct.pack("f",fval)
+	return [ord(val[0]),ord(val[1]),ord(val[2]),ord(val[3])]
+
+def short2bytes(sval):
+	val = struct.pack("h",sval)
+	return [ord(val[0]),ord(val[1])]
 
 class ReadSerialThread(threading.Thread):
     def run(self):
@@ -164,6 +192,8 @@ ser = serial.Serial("/dev/tty.wchusbserialfa130",115200)
 thread = ReadSerialThread()
 thread.setDaemon(True)
 thread.start()
+bot = mBot()
+
 while True:
 	alive = thread.isAlive()
 	if not alive:
