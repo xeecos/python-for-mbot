@@ -6,11 +6,13 @@ import glob
 
 buffer = []
 packageList = []
+selectors = []
 bufferIndex = 0
 timeIndex = 0
 isParseStart = False
 isParseStartIndex = 0
 is_loop = True
+led = 1
 
 def serialPorts():
 	if sys.platform.startswith('win'):
@@ -79,9 +81,11 @@ def readDouble(position):
 	v = [buffer[position], buffer[position+1],buffer[position+2],buffer[position+3]]
 	return struct.unpack('<f', struct.pack('4B', *v))[0]
 
-def responseValue(extId,value):
-	print extId
-	print value
+def responseValue(extID,value):
+	try:	
+		selectors[extID](value) 
+	except Exception,ex:
+			print str(ex)
 
 def readLoop():
 	global is_loop
@@ -98,7 +102,6 @@ def readLoop():
 				sleep(0.5)
 		except Exception,ex:
 			print str(ex)
-led = 1
 def requestData():
 	global timeIndex,led,bot
 	timeIndex += 1
@@ -110,9 +113,12 @@ def requestData():
 				addPackage(bot.packageRGBLedOnBoard(0x0,0x0,0x0,0x0))
 				addPackage(bot.packageRGBLedOnBoard(led,0x0,0x10,0x0))
 				# addPackage(bot.packageBuzzer(led*200))
-				addPackage(bot.requestLightOnBoard(8))
+				addPackage(bot.requestLightOnBoard(8,onLight))
 		except Exception,ex:
 			print str(ex)
+
+def onLight(value):
+	print value
 
 def addPackage(package):
 	packageList.append(package)
@@ -149,7 +155,8 @@ class mBot():
 	def packageIROnBoard(self,message):
 		return bytearray([0xff,0x55,len(message)+3,0x0,0x2,0xd,message])
 		
-	def requestLightOnBoard(self,extID):
+	def requestLightOnBoard(self,extID,callback):
+		setSelector(extID,callback)
 		return self.requestLight(extID,8)
 	
 	def requestLight(self,extID,port):
@@ -166,7 +173,15 @@ class mBot():
 		
 	def requestLineFollower(self,extID,port):
 		return bytearray([0xff,0x55,0x4,extID,0x1,0x11,port])
-	
+
+def setSelector(i,v):
+	try:
+		selectors[i] = v
+	except IndexError,ex:
+		for _ in range(i-len(selectors)+1):
+			selectors.append(None)
+		selectors[i] = v	
+
 def exitHandler(signum, frame):
 	global is_loop
 	is_loop = False
@@ -187,7 +202,7 @@ class ReadSerialThread(threading.Thread):
 print(serialPorts())
 signal.signal(signal.SIGINT, exitHandler)
 signal.signal(signal.SIGTERM, exitHandler)
-ser = serial.Serial("/dev/tty.wchusbserialfa130",115200)
+ser = serial.Serial("/dev/tty.wchusbserialfd120",115200)
 #ser = serial.Serial("/dev/ttyUSB0",115200)
 thread = ReadSerialThread()
 thread.setDaemon(True)
