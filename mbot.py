@@ -1,21 +1,21 @@
 import serial
-import sys,time,signal
-from multiprocessing import Process
+import sys,time
+from multiprocessing import Process,Manager,Array
+import multiprocessing
 from time import ctime,sleep
-import struct
-import glob
-import copy
+import glob,struct
 
-led = 1
-timeIndex = 0
 
 class mSerial():
 	ser = None
-	def start(self,port,callback):
+	def __init__(self):
+		print self
+
+	def start(self, port):
 		self.ser = serial.Serial(port,115200)
-		self.parseBuffer = callback
-		th = Process(target=self.onRead)
-		th.start()
+	
+	def device(self):
+		return self.ser
 
 	def serialPorts(self):
 		if sys.platform.startswith('win'):
@@ -34,80 +34,101 @@ class mSerial():
 			result.append(port)
 		return result
 
-	def onRead(self):
-		while True:
-			try:	
-				if self.ser.isOpen()==True:
-					n = self.ser.inWaiting()
-					if n>0: 
-						self.parseBuffer(ord(self.ser.read()))
-					else:
-						sleep(0.01)
-				else:	
-					sleep(0.5)
-			except Exception,ex:
-				print str(ex)
-
 	def writePackage(self,package):
 		self.ser.write(package)
 		sleep(0.01)
 
+	def read(self):
+		return self.ser.read()
+
+	def isOpen(self):
+		return self.ser.isOpen()
+
+	def inWaiting(self):
+		return self.ser.inWaiting()
+
 class mBot():
-	buffer = []
-	bufferIndex = 0
-	isParseStart = False
-	isParseStartIndex = 0
 	def __init__(self):
-		self.selectors = {}
+		print "init"
+		manager = Manager()
+		self.__selectors = manager.dict()
+		self.buffer = []
+		self.bufferIndex = 0
+		self.isParseStart = False
+		self.isParseStartIndex = 0
 
-	def packageRGBLed(self,port,index,red,green,blue):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,index,red,green,blue])
+	def start(self,device):
+		self.device = device
+		print self.device
+		th = Process(target=self.__onRead,args=(self.onParse,))
+		th.start()
 
-	def packageRGBLedOnBoard(self,index,red,green,blue):
-		return self.packageRGBLed(0x7,index,red,green,blue)
+	def __onRead(self,callback):
+		while 1:
+			try:	
+				if self.device.isOpen()==True:
+					n = self.device.inWaiting()
+					if n>0: 
+						r = ord(self.device.read())
+						callback(r)
+					else:
+						sleep(1)
+				else:	
+					sleep(0.5)
+			except Exception,ex:
+				print str(ex)
+				sleep(1)
+	def __writePackage(self,pack):
+		self.device.writePackage(pack)
 
-	def packageMotor(self,port,speed):
-		return bytearray([0xff,0x55,0x6,0x0,0x2,0xa,port]+short2bytes(speed))
+	def doRGBLed(self,port,index,red,green,blue):
+		self.__writePackage(bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,index,red,green,blue]))
 
-	def packageMove(self,leftSpeed,rightSpeed):
-		return bytearray([0xff,0x55,0x7,0x0,0x2,0x5]+short2bytes(leftSpeed)+short2bytes(rightSpeed))
+	def doRGBLedOnBoard(self,index,red,green,blue):
+		self.doRGBLed(0x7,index,red,green,blue)
+
+	def doMotor(self,port,speed):
+		self.__writePackage(bytearray([0xff,0x55,0x6,0x0,0x2,0xa,port]+short2bytes(speed)))
+
+	def doMove(self,leftSpeed,rightSpeed):
+		self.__writePackage(bytearray([0xff,0x55,0x7,0x0,0x2,0x5]+short2bytes(leftSpeed)+short2bytes(rightSpeed)))
 		
-	def packageServo(self,port,slot,angle):
-		return bytearray([0xff,0x55,0x6,0x0,0x2,0xb,port,slot,angle])
+	def doServo(self,port,slot,angle):
+		self.__writePackage(bytearray([0xff,0x55,0x6,0x0,0x2,0xb,port,slot,angle]))
 	
-	def packageBuzzer(self,buzzer):
-		return bytearray([0xff,0x55,0x5,0x0,0x2,0x22]+short2bytes(buzzer))
+	def doBuzzer(self,buzzer):
+		self.__writePackage(bytearray([0xff,0x55,0x5,0x0,0x2,0x22]+short2bytes(buzzer)))
 
-	def packageSevSegDisplay(self,port,display):
-		return bytearray([0xff,0x55,0x8,0x0,0x2,0x9,port]+float2bytes(display))
+	def doSevSegDisplay(self,port,display):
+		self.__writePackage(bytearray([0xff,0x55,0x8,0x0,0x2,0x9,port]+float2bytes(display)))
 		
-	def packageIROnBoard(self,message):
-		return bytearray([0xff,0x55,len(message)+3,0x0,0x2,0xd,message])
+	def doIROnBoard(self,message):
+		self.__writePackage(bytearray([0xff,0x55,len(message)+3,0x0,0x2,0xd,message]))
 		
 	def requestLightOnBoard(self,extID,callback):
-		return self.requestLight(extID,8,callback)
+		self.requestLight(extID,8,callback)
 	
 	def requestLight(self,extID,port,callback):
-		self.setCallback(extID,callback)
-		return bytearray([0xff,0x55,0x4,extID,0x1,0x3,port])
+		self.__doCallback(extID,callback)
+		self.__writePackage(bytearray([0xff,0x55,0x4,extID,0x1,0x3,port]))
 
 	def requestButtonOnBoard(self,extID,callback):
-		self.setCallback(extID,callback)
-		return bytearray([0xff,0x55,0x4,extID,0x1,0x1f,0x7])
+		self.__doCallback(extID,callback)
+		self.__writePackage(bytearray([0xff,0x55,0x4,extID,0x1,0x1f,0x7]))
 		
 	def requestIROnBoard(self,extID,callback):
-		self.setCallback(extID,callback)
-		return bytearray([0xff,0x55,0x3,extID,0x1,0xd])
+		self.__doCallback(extID,callback)
+		self.__writePackage(bytearray([0xff,0x55,0x3,extID,0x1,0xd]))
 		
 	def requestUltrasonicSensor(self,extID,port,callback):
-		self.setCallback(extID,callback)
-		return bytearray([0xff,0x55,0x4,extID,0x1,0x1,port])
+		self.__doCallback(extID,callback)
+		self.__writePackage(bytearray([0xff,0x55,0x4,extID,0x1,0x1,port]))
 		
 	def requestLineFollower(self,extID,port,callback):
-		self.setCallback(extID,callback)
-		return bytearray([0xff,0x55,0x4,extID,0x1,0x11,port])
+		self.__doCallback(extID,callback)
+		self.__writePackage(bytearray([0xff,0x55,0x4,extID,0x1,0x11,port]))
 	
-	def parseBuffer(self, byte):
+	def onParse(self, byte):
 		position = 0
 		value = 0	
 		self.buffer+=[byte]
@@ -158,14 +179,10 @@ class mBot():
 		return struct.unpack('<f', struct.pack('4B', *v))[0]
 
 	def responseValue(self, extID, value):
-		try:	
-			print self.selectors["func%d"%extID]
-			# self.selectors[extID](value) 
-		except Exception,ex:
-			print "error",ex
-
-	def setCallback(self,i,v):
-		self.selectors["func%d"%i] = 10
+		self.__selectors["callback_"+str(extID)](value)
+		
+	def __doCallback(self,i,v):
+		self.__selectors["callback_"+str(i)] = v
 
 	def float2bytes(self,fval):
 		val = struct.pack("f",fval)
@@ -175,33 +192,20 @@ class mBot():
 		val = struct.pack("h",sval)
 		return [ord(val[0]),ord(val[1])]
 
+	def onLight(self,value):
+		print "value:",value
 
-#ser = serial.Serial("/dev/ttyUSB0",115200)
+def onLight(value):
+	print "value:",value
+
 ser = mSerial()
 bot = mBot()
 print(ser.serialPorts())
-
-ser.start("/dev/tty.wchusbserialfd120",bot.parseBuffer)
-
-def onLight(value):
-	print value
-
-def requestTestData():
-	global ser,bot,led
-	while True:
-		sleep(0.5)
-		try:	
-			led = 3 - led
-			ser.writePackage(bot.packageRGBLedOnBoard(0x0,0x0,0x0,0x0))
-			ser.writePackage(bot.packageRGBLedOnBoard(led,0x0,0x10,0x0))
-			# ser.writePackage(bot.packageBuzzer(led*200))
-			ser.writePackage(bot.requestLightOnBoard(8,onLight))
-		except Exception,ex:
-			print str(ex)
-
-t = Process(target = requestTestData)
-t.start()
-
-
-
-
+ser.start("/dev/tty.wchusbserialfd120")
+bot.start(ser)
+while(1):
+	try:	
+		bot.requestLightOnBoard(8,onLight)
+	except Exception,ex:
+		print str(ex)
+	sleep(1)
