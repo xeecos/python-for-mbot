@@ -47,9 +47,9 @@ class mSerial():
 
 class mBot():
 	def __init__(self):
-		print "init"
-		manager = Manager()
-		self.__selectors = manager.dict()
+		print "init mBot"
+		self.manager = Manager()
+		self.__selectors = self.manager.dict()
 		self.buffer = []
 		self.bufferIndex = 0
 		self.isParseStart = False
@@ -80,6 +80,7 @@ class mBot():
 			except Exception,ex:
 				print str(ex)
 				sleep(1)
+				
 	def __writePackage(self,pack):
 		self.device.writePackage(pack)
 
@@ -183,8 +184,8 @@ class mBot():
 	def responseValue(self, extID, value):
 		self.__selectors["callback_"+str(extID)](value)
 		
-	def __doCallback(self,i,v):
-		self.__selectors["callback_"+str(i)] = v
+	def __doCallback(self, extID, callback):
+		self.__selectors["callback_"+str(extID)] = callback
 
 	def float2bytes(self,fval):
 		val = struct.pack("f",fval)
