@@ -1,4 +1,5 @@
 import serial
+import hidapi
 import sys,time
 from time import ctime,sleep
 import glob,struct
@@ -45,6 +46,52 @@ class mSerial():
 	def inWaiting(self):
 		return self.ser.inWaiting()
 
+class mHID():
+	def __init__(self):
+		print self
+		
+	def start(self):
+		hidapi.hid_init()
+		self.enumerate()
+		self.device = hidapi.hid_open(0x0416, 0xffff)
+		#32837112
+		print "start",self.device
+		self.buffer = []
+		self.bufferIndex = 0
+
+	def enumerate(self):
+		for dev in hidapi.hid_enumerate():
+			print '------------------------------------------------------------'
+			print dev.description()
+
+	def writePackage(self,package):
+		buf = []
+		buf += [0, len(package)]
+		for i in range(len(package)):
+			buf += [package[i]]
+		n = hidapi.hid_write(self.device,buf)
+		sleep(0.01)
+
+	def read(self):
+		c = self.buffer[0]
+		self.buffer = self.buffer[1:]
+		return c	
+		
+	def isOpen(self):
+		return True
+
+	def inWaiting(self):
+		buf = hidapi.hid_read(self.device,64)
+		print "inWaiting",buf[0],self.device
+		return False
+		l = 0
+		if len(buf)>0:
+			l = buf[0]-1
+		if l>0:
+			for i in range(0,l):
+				self.buffer += [buf[i+2]]
+		return len(self.buffer)>0
+
 class mBot():
 	def __init__(self):
 		print "init mBot"
@@ -59,6 +106,11 @@ class mBot():
 		ser = mSerial()
 		ser.start(port)
 		self.start(ser)
+	
+	def startWithHID(self):
+		hid = mHID()
+		hid.start()
+		self.start(hid)
 		
 	def start(self,device):
 		self.device = device
@@ -84,23 +136,23 @@ class mBot():
 	def __writePackage(self,pack):
 		self.device.writePackage(pack)
 
-	def doRGBLed(self,port,index,red,green,blue):
-		self.__writePackage(bytearray([0xff,0x55,0x8,0x0,0x2,0x8,port,index,red,green,blue]))
+	def doRGBLed(self,port,slot,index,red,green,blue):
+		self.__writePackage(bytearray([0xff,0x55,0x9,0x0,0x2,0x8,port,slot,index,red,green,blue]))
 
 	def doRGBLedOnBoard(self,index,red,green,blue):
-		self.doRGBLed(0x7,index,red,green,blue)
+		self.doRGBLed(0x7,0x2,index,red,green,blue)
 
 	def doMotor(self,port,speed):
 		self.__writePackage(bytearray([0xff,0x55,0x6,0x0,0x2,0xa,port]+self.short2bytes(speed)))
 
 	def doMove(self,leftSpeed,rightSpeed):
-		self.__writePackage(bytearray([0xff,0x55,0x7,0x0,0x2,0x5]+self.short2bytes(leftSpeed)+self.short2bytes(rightSpeed)))
+		self.__writePackage(bytearray([0xff,0x55,0x7,0x0,0x2,0x5]+self.short2bytes(-leftSpeed)+self.short2bytes(rightSpeed)))
 		
 	def doServo(self,port,slot,angle):
 		self.__writePackage(bytearray([0xff,0x55,0x6,0x0,0x2,0xb,port,slot,angle]))
 	
-	def doBuzzer(self,buzzer):
-		self.__writePackage(bytearray([0xff,0x55,0x5,0x0,0x2,0x22]+self.short2bytes(buzzer)))
+	def doBuzzer(self,buzzer,time=0):
+		self.__writePackage(bytearray([0xff,0x55,0x7,0x0,0x2,0x22]+self.short2bytes(buzzer)+self.short2bytes(time)))
 
 	def doSevSegDisplay(self,port,display):
 		self.__writePackage(bytearray([0xff,0x55,0x8,0x0,0x2,0x9,port]+self.float2bytes(display)))
