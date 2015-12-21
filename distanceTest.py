@@ -2,10 +2,9 @@ from lib.mBot import *
 if __name__ == '__main__':
 	def onDistance(dist):
 		print "distance:",dist
-		return
 		if dist<20 :
 			bot.doMove(-100,-100)
-			sleep(0.1)
+			sleep(0.5)
 			bot.doMove(100,-100)
 			sleep(0.1)
 		bot.doMove(100,100)
@@ -16,7 +15,6 @@ if __name__ == '__main__':
 	while(1):
 		try:	
 			bot.requestUltrasonicSensor(1,3,onDistance)
-			print "requesting"
 		except Exception,ex:
 			print str(ex)
-		sleep(0.5)
+		sleep(0.2)
