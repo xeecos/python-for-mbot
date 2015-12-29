@@ -8,5 +8,6 @@ set path x:/Python27 x:/Python27/Scripts
 pip install pyserial
 
 http://www.microsoft.com/en-us/download/confirmation.aspx?id=44266
+Microsoft Visual C++ Compiler for Python 2.7
 
 pip install hidapi
