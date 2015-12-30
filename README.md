@@ -76,6 +76,9 @@ if __name__ == '__main__':
   ```
   bot.startWithHID()
   ```
+  
+  running:
+  
   ```
   [sudo] python lightsensor.py
   ```
