@@ -32,9 +32,9 @@ Installation
 install python 2.7.x ( http://python.org/downloads )
 
   ```
-    for windows: set path x:/Python27 x:/Python27/Scripts
-    Install Microsoft Visual C++ Compiler for Python 2.7
-    ( http://www.microsoft.com/en-us/download/confirmation.aspx?id=44266 )
+  for windows: set path x:/Python27 x:/Python27/Scripts
+  Install Microsoft Visual C++ Compiler for Python 2.7
+  ( http://www.microsoft.com/en-us/download/confirmation.aspx?id=44266 )
   ```
   ```
   [sudo] pip install cython
@@ -47,12 +47,16 @@ Usage
   git clone https://github.com/xeecos/python-for-mbot
  ```
  Edit lightsensor.py
+  
   using usb serial or bluetooth serial:
+  
     change the serial port name "COMX" for your mBot on system
     ```
     bot.startWithSerial("COM15")
     ```
+  
   using wireless HID:
+  
   ```
     bot.startWithHID()
   ```
