@@ -51,7 +51,7 @@ Usage
   
   using usb serial or bluetooth serial:
   
-  change the serial port name "COMX" for your mBot on system
+  change the serial port name "COMX or /dev/tty.XXX" for your mBot on system
   ```
   bot.startWithSerial("COM15")
   ```
