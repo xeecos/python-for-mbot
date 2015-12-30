@@ -47,6 +47,8 @@ Usage
  ```
   git clone https://github.com/xeecos/python-for-mbot
  ```
+ Enter the folder "python-for-mbot"
+ 
  Edit lightsensor.py
   
   using usb serial or bluetooth serial:
