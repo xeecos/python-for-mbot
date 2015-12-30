@@ -33,11 +33,9 @@ install python 2.7.x ( http://python.org/downloads )
 
   ```
   for Windows users: 
-  
     set path x:/Python27 x:/Python27/Scripts
-  
     Install Microsoft Visual C++ Compiler for Python 2.7
-    ( http://www.microsoft.com/en-us/download/confirmation.aspx?id=44266 )
+    (http://www.microsoft.com/en-us/download/confirmation.aspx?id=44266)
   ```
   ```
   [sudo] pip install cython
