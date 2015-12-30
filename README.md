@@ -1,4 +1,28 @@
-# python-for-mbot
+# Python Library for mBot
+.. contents::
+
+Description
+-----------
+A Python interface to control and communicate with mBot robot kit from Makeblock
+
+This has been tested with:
+
+* the Raspberry PI.
+* the Intel Edison.
+
+It works on Linux, Windows 7 and OS X.
+
+Software Dependencies
+---------------------
+
+* Python (http://python.org/download/)
+* Cython (http://cython.org/#download)
+* cython-hidapi (https://github.com/trezor/cython-hidapi)
+* pyserial
+
+Install
+-------
+
 http://python.org/downloads
 
 install python 2.7.x
