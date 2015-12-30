@@ -1,5 +1,10 @@
 # Python Library for mBot
-.. contents::
+Table of contents
+=================
+
+  * [Description](#description)
+  * [Software Dependencies](#software-dependencies)
+  * [Installation](#installation)
 
 Description
 -----------
@@ -20,7 +25,7 @@ Software Dependencies
 * cython-hidapi (https://github.com/trezor/cython-hidapi)
 * pyserial
 
-Install
+Installation
 -------
 
 http://python.org/downloads
