@@ -50,15 +50,15 @@ Usage
   
   using usb serial or bluetooth serial:
   
-    change the serial port name "COMX" for your mBot on system
-    ```
-    bot.startWithSerial("COM15")
-    ```
+  change the serial port name "COMX" for your mBot on system
+  ```
+  bot.startWithSerial("COM15")
+  ```
   
   using wireless HID:
   
   ```
-    bot.startWithHID()
+  bot.startWithHID()
   ```
   ```
   [sudo] python lightsensor.py
