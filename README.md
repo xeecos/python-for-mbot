@@ -21,10 +21,25 @@ It works on Linux, Windows 7 and OS X.
 Software Dependencies
 ---------------------
 
+* Makeblock Library (https://github.com/Makeblock-official/Makeblock-Libraries)
 * Python (http://python.org/download/)
 * Cython (http://cython.org/#download)
 * cython-hidapi (https://github.com/trezor/cython-hidapi)
 * pyserial
+
+Prepare for Makeblock's Bots
+----------------------------
+1. Download the source from the git https://github.com/Makeblock-official/Makeblock-Libraries
+
+2. copy the makeblock folder to your arduino default library. Your Arduino library folder should now look like this
+(on Windows): [arduino installation directory]\libraries\makeblock\src
+(on MACOS): [arduino Package Contents]\contents\Java\libraries\makeblock\src
+
+3. Open the Arduino Application. (If it's already open, you will need to restart it to see changes.)
+
+4. Click "File-> Examples". Here are firmwares for Makeblock's bots in "MakeBlockDrive->Firmware_for_mBlock".
+
+5. Upload the Firmware to your bot.
 
 Installation
 -------
@@ -36,6 +51,10 @@ install python 2.7.x ( http://python.org/downloads )
     set path x:/Python27 x:/Python27/Scripts
     Install Microsoft Visual C++ Compiler for Python 2.7
     (http://www.microsoft.com/en-us/download/confirmation.aspx?id=44266)
+  ```
+  ```
+  for Macosx users:
+    pip install --upgrade setuptools --user python
   ```
   ```
   [sudo] pip install cython
