@@ -2,7 +2,7 @@ from lib.mBot import *
 
 if __name__ == '__main__':
 	bot = mBot()
-	#bot.startWithSerial("COM15")
+	#bot.startWithSerial("/dev/tty.Repleo-CH341-000012FD")
 	bot.startWithHID()
 	while(1):
 		print "loop"
