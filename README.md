@@ -101,3 +101,5 @@ if __name__ == '__main__':
   ```
   [sudo] python lightsensor.py
   ```
+  
+###Learn more from Makeblock official website http://www.makeblock.com
