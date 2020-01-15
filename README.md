@@ -16,7 +16,7 @@ This has been tested with:
 * the Raspberry PI.
 * the Intel Edison.
 
-It works on Linux, Windows 7 and OS X.
+It works on Linux, Windows 7/10 and OS X.
 
 Software Dependencies
 ---------------------
