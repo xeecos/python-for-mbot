@@ -136,9 +136,9 @@ class mBot():
 		
 	def __onRead(self,callback):
 		while 1:
-			if(self.exiting==True):
+			if self.exiting:
 				break
-            if self.device.isOpen()==True:
+            if self.device.isOpen():
                 n = self.device.inWaiting()
                 for i in range(n):
                     r = ord(self.device.read())
