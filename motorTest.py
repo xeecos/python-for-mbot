@@ -5,13 +5,13 @@ bot.startWithHID()
 while(1):
 	try:	
 		bot.doMove(100,100)
-		print "run forward"
+		print("run forward")
 		sleep(2)
 		bot.doMove(-100,-100)
-		print "run backward"
+		print("run backward")
 		sleep(2)
 		bot.doMove(0,0)
-		print "stop"
+		print("stop")
 		sleep(2)
-	except Exception,ex:
-		print str(ex)
+	except ex:
+		print("err")
