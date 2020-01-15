@@ -73,7 +73,7 @@ if __name__ == '__main__':
 	   sleep(0.5)
  ```
   
-  using usb serial or bluetooth serial:
+  ## using usb serial or bluetooth serial:
   
   change the serial port name "COMX or /dev/tty.XXX" for your mBot on system
   ```
@@ -92,4 +92,4 @@ if __name__ == '__main__':
   [sudo] python lightsensor.py
   ```
   
-###Learn more from Makeblock official website http://www.makeblock.com
+### Learn more from Makeblock official website http://www.makeblock.com
