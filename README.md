@@ -44,18 +44,8 @@ Prepare for Makeblock's Bots
 Installation
 -------
 
-install python 2.7.x ( http://python.org/downloads )
+install python 2.7.x / 3.x ( http://python.org/downloads )
 
-  ```
-  for Windows users: 
-    set path x:/Python27 x:/Python27/Scripts
-    Install Microsoft Visual C++ Compiler for Python 2.7
-    (http://www.microsoft.com/en-us/download/confirmation.aspx?id=44266)
-  ```
-  ```
-  for Macosx users:
-    pip install --upgrade setuptools --user python
-  ```
   ```
   [sudo] pip install cython
   [sudo] pip install pyserial
