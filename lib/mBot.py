@@ -138,18 +138,14 @@ class mBot():
 		while 1:
 			if(self.exiting==True):
 				break
-			try:	
-				if self.device.isOpen()==True:
-					n = self.device.inWaiting()
-					for i in range(n):
-						r = ord(self.device.read())
-						callback(r)
-					sleep(0.01)
-				else:	
-					sleep(0.5)
-			except ex:
-				self.close()
-				sleep(1)
+            if self.device.isOpen()==True:
+                n = self.device.inWaiting()
+                for i in range(n):
+                    r = ord(self.device.read())
+                    callback(r)
+                sleep(0.01)
+            else:	
+                sleep(0.5)
 				
 	def __writePackage(self,pack):
 		self.device.writePackage(pack)

@@ -5,9 +5,6 @@ from time import sleep
 dev = None
 hidapi = hid()
 hidapi.hid_init()
-for dev in hidapi.hid_enumerate():
-	print '------------------------------------------------------------'
-	print dev.description()
 dev = hidapi.hid_open(0x0416, 0xffff)
 exiting = False
 def excepthook(exctype, value, traceback):
@@ -22,9 +19,6 @@ def __onRead():
 			break
 		buf = hidapi.hid_read(dev,64)
 		l = buf[0]
-		if l>0:
-			for i in range(l):
-				print buf[i+1]
 		if index==10:
 			index = 0
 			num = hidapi.hid_write(dev,[0,7,0xff,0x55,0x4,1,0x1,0x1,3])
