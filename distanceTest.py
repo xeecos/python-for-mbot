@@ -1,7 +1,7 @@
 from lib.mBot import *
 if __name__ == '__main__':
 	def onDistance(dist):
-		print "distance:",dist
+		print("distance:",dist)
 		if dist<20 :
 			bot.doMove(-100,-100)
 			sleep(0.5)
